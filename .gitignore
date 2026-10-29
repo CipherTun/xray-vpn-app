@@ -1,0 +1,15 @@
+/android/
+/ios/
+/build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+*.aar
+*.jks
+*.keystore
+local.properties
+.idea/
+*.iml
+.DS_Store
