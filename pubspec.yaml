@@ -1,0 +1,25 @@
+name: vpn
+description: XRay VPN - Xray-core (libXray) TUN + DartSSH2 tunnels.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  shared_preferences: ^2.3.2
+  path_provider: ^2.1.4
+  dartssh2: ^2.18.0
+  permission_handler: ^11.3.1
+  mobile_scanner: ^6.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
