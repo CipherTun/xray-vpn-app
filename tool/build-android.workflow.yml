@@ -1,0 +1,64 @@
+name: Build Android
+
+# The GitHub connector can't write into .github/workflows (needs the `workflow` scope).
+# Move this file to .github/workflows/build-android.yml yourself (web UI: Add file > Create new file).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  libxray:
+    name: libXray AAR (latest tag)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Build libXray AAR
+        run: |
+          git clone https://github.com/XTLS/libXray.git
+          cd libXray
+          TAG=$(git describe --tags "$(git rev-list --tags --max-count=1)" 2>/dev/null || true)
+          if [ -n "$TAG" ]; then git checkout "$TAG"; fi
+          echo "libXray ref: ${TAG:-main}"
+          export ANDROID_NDK_HOME="$ANDROID_NDK_LATEST_HOME"
+          python3 build/main.py android
+          find . -name '*.aar' -print
+          mkdir -p ../aar
+          cp "$(find . -name '*.aar' | head -n1)" ../aar/libXray.aar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: libxray-aar
+          path: aar/libXray.aar
+
+  apk:
+    name: Flutter APK
+    needs: libxray
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - uses: actions/download-artifact@v4
+        with:
+          name: libxray-aar
+          path: aar
+      - run: bash tool/bootstrap.sh
+      - run: cp aar/libXray.aar android/app/libs/libXray.aar
+      - run: flutter pub get
+      - run: flutter build apk --release --split-per-abi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xray-vpn-apk
+          path: build/app/outputs/flutter-apk/*.apk
